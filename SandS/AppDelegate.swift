@@ -20,8 +20,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // MENU
         let menu = NSMenu()
-        statusItem.title = "S"
-        statusItem.highlightMode = true
+        if let button = statusItem.button {
+            button.image = createStatusBarIcon()
+            button.image?.isTemplate = true
+        }
         statusItem.menu = menu
         menu.addItem(withTitle: "Quit", action: #selector(AppDelegate.quit(_:)), keyEquivalent: "")
 
@@ -67,12 +69,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
 
-        CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
+        CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: eventTap, enable: true)
-        CFRunLoopRun()
     }
 
     @objc func quit(_ sender: Any) {
         NSApplication.shared.terminate(self)
+    }
+
+    private func createStatusBarIcon() -> NSImage {
+        let size = NSSize(width: 18, height: 18)
+        let image = NSImage(size: size)
+        image.lockFocus()
+
+        let font = NSFont.boldSystemFont(ofSize: 14)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: NSColor.black
+        ]
+        let str = "S"
+        let strSize = str.size(withAttributes: attributes)
+        let point = NSPoint(
+            x: (size.width - strSize.width) / 2,
+            y: (size.height - strSize.height) / 2
+        )
+        str.draw(at: point, withAttributes: attributes)
+
+        image.unlockFocus()
+        return image
     }
 }
